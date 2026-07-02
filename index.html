@@ -13,6 +13,10 @@
     --color-texto: #4A3E3D;
     --color-caja-anuncio: #F5EFE6;
     --radio-borde: 16px;
+    
+    /* Colores calientitos para el cuadro de advertencia de playlist */
+    --color-aviso-fondo: #FAF4EB;
+    --color-aviso-texto: #4A3E3D;
   }
 
   * {
@@ -106,6 +110,60 @@
     margin: 0;
   }
 
+  /* El cuadro de advertencia alargado del boceto */
+  .cuadro-advertencia-playlist {
+    width: 100%;
+    background-color: var(--color-aviso-fondo);
+    border: 2px solid var(--color-texto);
+    border-radius: var(--radio-borde);
+    padding: 24px 16px;
+    margin: 8px 0;
+    cursor: pointer;
+    display: none; /* Se activa solo por JS si es playlist */
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    box-shadow: 0 6px 16px rgba(74, 62, 61, 0.05);
+    transition: transform 0.2s ease;
+  }
+
+  .cuadro-advertencia-playlist:active {
+    transform: scale(0.98);
+  }
+
+  .cuadro-txt-principal {
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 1.4;
+    margin: 0;
+    color: var(--color-texto);
+  }
+
+  .cuadro-txt-secundario {
+    font-size: 13px;
+    opacity: 0.8;
+    margin: 0;
+    font-style: italic;
+  }
+
+  /* Marco interactivo "Nomás visual" estilo boceto dentro del cuadro */
+  .cuadro-interactivo-boceto {
+    width: 100%;
+    min-height: 120px; /* Alargado hacia arriba */
+    background: #ffffff;
+    border: 2px solid #000000;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 16px;
+    color: #000000;
+    box-shadow: 3px 3px 0px #000000;
+  }
+
   .boton-descarga {
     width: 100%;
     padding: 16px 20px;
@@ -120,6 +178,13 @@
     cursor: not-allowed;
     transition: background-color 0.4s ease, color 0.4s ease, transform 0.15s ease, box-shadow 0.4s ease;
     opacity: 0.75;
+  }
+
+  .boton-descarga.conteo {
+    background-color: var(--color-caja-anuncio);
+    color: var(--color-texto);
+    cursor: wait;
+    opacity: 1;
   }
 
   .boton-descarga.activo {
@@ -145,12 +210,10 @@
     border: 1.5px dashed rgba(74, 62, 61, 0.25);
     border-radius: var(--radio-borde);
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
-    color: rgba(74, 62, 61, 0.45);
-    font-size: 12px;
-    letter-spacing: 1.5px;
-    text-transform: uppercase;
+    overflow: hidden;
   }
 
   footer {
@@ -166,6 +229,10 @@
     min-height: 18px;
   }
 </style>
+
+<!-- 1. AQUÍ PEGA TU CÓDIGO POPUNDER DE ADSTERRA -->
+<!-- Este script se quedará latente y se disparará al interactuar con la pantalla -->
+
 </head>
 <body>
 
@@ -176,24 +243,41 @@
       <p class="subtitulo">Tu extractor de audio de confianza</p>
     </header>
 
-    <div class="anuncio">Espacio Publicitario</div>
+    <!-- Caja de arriba (Círculo naranja superior) -->
+    <div class="anuncio">
+      <!-- 2. AQUÍ PEGA EL CÓDIGO DEL NATIVE BANNER O BANNER 320x50 DE ARRIBA -->
+    </div>
 
     <div class="tarjeta">
       <div class="icono-audio">🎧</div>
-      <h1 class="titulo-tarjeta">¡Tu audio está casi listo!</h1>
-      <p class="descripcion-tarjeta">
-        Estamos preparando tu descarga en 320kbps. Espera unos segundos
-        y el botón se activará automáticamente.
+      <h1 class="titulo-tarjeta" id="texto-titulo-tarjeta">¡Tu audio está casi listo!</h1>
+      <p class="descripcion-tarjeta" id="texto-descripcion-tarjeta">
+        Estamos preparando tus archivos en alta calidad.
       </p>
 
-      <button id="boton-descarga" class="boton-descarga" disabled>
-        Preparando tu audio en 5 segundos...
+      <!-- NUEVO: Cuadro alargado de Advertencia exclusivo para Playlists -->
+      <div id="cuadro-aviso-playlist" class="cuadro-advertencia-playlist">
+        <div>
+          <p class="cuadro-txt-principal">Ya que intentas descargar una playlist,<br>verás un anuncio más largo.</p>
+          <p class="cuadro-txt-secundario">Gracias por tu apoyo 👥</p>
+        </div>
+        <div class="cuadro-interactivo-boceto">
+          👉 ¡Da click aquí!
+        </div>
+      </div>
+
+      <!-- Botón de descarga principal -->
+      <button id="boton-descarga" class="boton-descarga">
+        Esperando...
       </button>
 
-      <p id="mensaje-estado" class="mensaje-estado"></p>
+      <p id="mensaje-estado" class="mensaje-estado">Esperando interacción.</p>
     </div>
 
-    <div class="anuncio">Espacio Publicitario</div>
+    <!-- Caja de abajo (Círculo naranja inferior) -->
+    <div class="anuncio">
+      <!-- 3. AQUÍ PEGA EL CÓDIGO DEL BANNER 320x50 DE ABAJO -->
+    </div>
 
     <footer>
       © 2026 Calisito · Todos los derechos reservados
@@ -203,65 +287,96 @@
 
 <script>
   (function () {
-    const SEGUNDOS_INICIALES = 5;
-    // Nombre de usuario del bot de Telegram (sin la @).
     const USUARIO_BOT_TELEGRAM = 'CalisitoBot';
 
     const boton = document.getElementById('boton-descarga');
+    const cuadroAvisoPlaylist = document.getElementById('cuadro-aviso-playlist');
     const mensajeEstado = document.getElementById('mensaje-estado');
+    const tituloTarjeta = document.getElementById('texto-titulo-tarjeta');
+    const descripcionTarjeta = document.getElementById('texto-descripcion-tarjeta');
 
-    // El bot incluye el ID del usuario de Telegram en la URL
-    // (?user_id=...) para que, al volver, sepamos a quién redirigir
-    // de vuelta y con qué "enlace profundo" de verificación.
     const parametros = new URLSearchParams(window.location.search);
     const idUsuario = parametros.get('user_id');
+    const esPlaylist = parametros.get('type') === 'playlist';
 
-    let segundosRestantes = SEGUNDOS_INICIALES;
+    let segundosRestantes = esPlaylist ? 30 : 5;
+    let listoParaDescargar = false;
 
-    function actualizarTextoContador() {
-      boton.textContent = `Preparando tu audio en ${segundosRestantes} segundos...`;
+    // FLUJO MODO PLAYLIST (30 SEGUNDOS CON ADVERTENCIA VISUAL)
+    if (esPlaylist) {
+      tituloTarjeta.textContent = "¡Tu playlist está casi lista!";
+      descripcionTarjeta.textContent = "Las listas de reproducción requieren una verificación completa antes de ser procesadas.";
+      
+      // Ocultamos el botón principal temporalmente y mostramos el cuadro largo estilo boceto
+      boton.style.display = 'none';
+      cuadroAvisoPlaylist.style.display = 'flex';
+      mensajeEstado.textContent = 'Por favor toca el cuadro de arriba para verificar.';
+
+      // Cuando el usuario le da click al cuadro del boceto:
+      cuadroAvisoPlaylist.addEventListener('click', function () {
+        // 1. Desaparece el cuadro de advertencia
+        cuadroAvisoPlaylist.style.display = 'none';
+        
+        // 2. Aparece el botón de descarga en modo conteo regresivo
+        boton.style.display = 'block';
+        boton.disabled = true;
+        boton.classList.add('conteo');
+        
+        mensajeEstado.textContent = 'Procesando lista... Por favor mantén abierta la publicidad en la otra pestaña.';
+
+        // El popunder de Adsterra se activa de fondo de forma automática gracias a este click
+        const intervalo = setInterval(function () {
+          segundosRestantes -= 1;
+          boton.textContent = `Procesando... ${segundosRestantes}s`;
+
+          if (segundosRestantes <= 0) {
+            clearInterval(intervalo);
+            listoParaDescargar = true;
+            boton.disabled = false;
+            boton.classList.remove('conteo');
+            boton.classList.add('activo');
+            boton.textContent = '🚀 Descargar Playlist Completa';
+            mensajeEstado.textContent = '¡Verificación exitosa! Ya puedes obtener tu lista.';
+          }
+        }, 1000);
+      });
+
+    // FLUJO AUDIO NORMAL (5 SEGUNDOS TRADICIONAL DIRECTO)
+    } else {
+      // Flujo normal sin el cuadro de advertencia
+      boton.disabled = true;
+      boton.classList.add('conteo');
+      boton.textContent = `Preparando audio... ${segundosRestantes}s`;
+      mensajeEstado.textContent = 'Generando enlace de descarga directa...';
+
+      const intervaloNormal = setInterval(function () {
+        segundosRestantes -= 1;
+        boton.textContent = `Preparando audio... ${segundosRestantes}s`;
+
+        if (segundosRestantes <= 0) {
+          clearInterval(intervaloNormal);
+          listoParaDescargar = true;
+          boton.disabled = false;
+          boton.classList.remove('conteo');
+          boton.classList.add('activo');
+          boton.textContent = '⬇ Descargar Audio';
+          mensajeEstado.textContent = '¡Tu audio de alta calidad está listo!';
+        }
+      }, 1000);
     }
 
-    function activarBoton() {
-      boton.disabled = false;
-      boton.classList.add('activo');
-      boton.textContent = '⬇ Descargar Audio';
-      mensajeEstado.textContent = '¡Listo! Tu audio ya puede descargarse.';
-    }
-
-    actualizarTextoContador();
-
-    const intervalo = setInterval(function () {
-      segundosRestantes -= 1;
-
-      if (segundosRestantes > 0) {
-        actualizarTextoContador();
-      } else {
-        clearInterval(intervalo);
-        activarBoton();
-      }
-    }, 1000);
-
+    // ACCIÓN DEL BOTÓN CUANDO LLEGA A CERO (CUALQUIER CASO)
     boton.addEventListener('click', function () {
-      if (boton.disabled) {
-        return;
-      }
+      if (!listoParaDescargar) return;
 
       if (!idUsuario) {
-        // Si por alguna razón no llegó el ID (por ejemplo, alguien
-        // abrió la página directamente sin pasar por el bot), solo lo
-        // mandamos al bot para que empiece de nuevo desde /start.
-        mensajeEstado.textContent = 'Regresando a Telegram...';
         window.location.href = `https://t.me/${USUARIO_BOT_TELEGRAM}`;
         return;
       }
 
-      mensajeEstado.textContent = 'Regresando a Telegram para entregar tu audio...';
-
-      // Enlace profundo de Telegram: al volver al bot con este
-      // parámetro, el bot detecta "/start verify_<id>" y descarga
-      // automáticamente la canción que había quedado pendiente.
-      window.location.href = `https://t.me/${USUARIO_BOT_TELEGRAM}?start=verify_${idUsuario}`;
+      mensajeEstado.textContent = 'Enviando archivos a tu Telegram...';
+      const comandoStart = esPlaylist ? `verify_playlist_${idUsuario}` : `verify_${idUsuario}`;
+      window.location.href = `https://t.me/${USUARIO_BOT_TELEGRAM}?start=${comandoStart}`;
     });
   })();
 </script>
