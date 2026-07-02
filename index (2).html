@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+<title>Calisito · Tu audio está casi listo</title>
+<meta name="description" content="Descarga tu audio en alta calidad con Calisito." />
+<style>
+  :root {
+    --color-fondo: #FDFBF7;
+    --color-acento: #FFAAA6;
+    --color-acento-oscuro: #F28C87;
+    --color-texto: #4A3E3D;
+    --color-caja-anuncio: #F5EFE6;
+    --radio-borde: 16px;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+  }
+
+  body {
+    background-color: var(--color-fondo);
+    color: var(--color-texto);
+    font-family: "Georgia", "Iowan Old Style", "Palatino Linotype", serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px 16px 40px;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .contenedor {
+    width: 100%;
+    max-width: 420px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  header {
+    text-align: center;
+    margin-top: 8px;
+    margin-bottom: 4px;
+  }
+
+  .logo {
+    font-size: 28px;
+    letter-spacing: 2px;
+    font-weight: 700;
+    color: var(--color-texto);
+    text-transform: uppercase;
+  }
+
+  .logo span {
+    color: var(--color-acento-oscuro);
+  }
+
+  .subtitulo {
+    margin-top: 6px;
+    font-size: 14px;
+    opacity: 0.75;
+    font-style: italic;
+  }
+
+  .tarjeta {
+    background-color: #ffffff;
+    border-radius: var(--radio-borde);
+    padding: 28px 22px;
+    box-shadow: 0 8px 24px rgba(74, 62, 61, 0.08);
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 18px;
+  }
+
+  .icono-audio {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background-color: var(--color-fondo);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    box-shadow: inset 0 0 0 2px rgba(255, 170, 166, 0.4);
+  }
+
+  .titulo-tarjeta {
+    font-size: 18px;
+    font-weight: 700;
+    margin: 0;
+  }
+
+  .descripcion-tarjeta {
+    font-size: 14px;
+    line-height: 1.5;
+    opacity: 0.8;
+    margin: 0;
+  }
+
+  .boton-descarga {
+    width: 100%;
+    padding: 16px 20px;
+    border: none;
+    border-radius: var(--radio-borde);
+    font-family: inherit;
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    background-color: #E4DCCF;
+    color: #8A7E7C;
+    cursor: not-allowed;
+    transition: background-color 0.4s ease, color 0.4s ease, transform 0.15s ease, box-shadow 0.4s ease;
+    opacity: 0.75;
+  }
+
+  .boton-descarga.activo {
+    background-color: var(--color-acento);
+    color: #4A2F2D;
+    cursor: pointer;
+    opacity: 1;
+    box-shadow: 0 8px 18px rgba(255, 170, 166, 0.55);
+  }
+
+  .boton-descarga.activo:hover {
+    background-color: var(--color-acento-oscuro);
+  }
+
+  .boton-descarga.activo:active {
+    transform: scale(0.98);
+  }
+
+  .anuncio {
+    width: 100%;
+    min-height: 90px;
+    background-color: var(--color-caja-anuncio);
+    border: 1.5px dashed rgba(74, 62, 61, 0.25);
+    border-radius: var(--radio-borde);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(74, 62, 61, 0.45);
+    font-size: 12px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+  }
+
+  footer {
+    text-align: center;
+    font-size: 12px;
+    opacity: 0.5;
+    margin-top: 4px;
+  }
+
+  .mensaje-estado {
+    font-size: 13px;
+    opacity: 0.7;
+    min-height: 18px;
+  }
+</style>
+</head>
+<body>
+
+  <div class="contenedor">
+
+    <header>
+      <div class="logo">Calis<span>ito</span></div>
+      <p class="subtitulo">Tu extractor de audio de confianza</p>
+    </header>
+
+    <div class="anuncio">Espacio Publicitario</div>
+
+    <div class="tarjeta">
+      <div class="icono-audio">🎧</div>
+      <h1 class="titulo-tarjeta">¡Tu audio está casi listo!</h1>
+      <p class="descripcion-tarjeta">
+        Estamos preparando tu descarga en 320kbps. Espera unos segundos
+        y el botón se activará automáticamente.
+      </p>
+
+      <button id="boton-descarga" class="boton-descarga" disabled>
+        Preparando tu audio en 5 segundos...
+      </button>
+
+      <p id="mensaje-estado" class="mensaje-estado"></p>
+    </div>
+
+    <div class="anuncio">Espacio Publicitario</div>
+
+    <footer>
+      © 2026 Calisito · Todos los derechos reservados
+    </footer>
+
+  </div>
+
+<script>
+  (function () {
+    const SEGUNDOS_INICIALES = 5;
+    // Enlace de prueba al que se redirige (o simula) la descarga final.
+    const URL_DESCARGA_PRUEBA = 'https://tu-usuario.github.io/mi-extractor-web/descarga-lista';
+
+    const boton = document.getElementById('boton-descarga');
+    const mensajeEstado = document.getElementById('mensaje-estado');
+
+    let segundosRestantes = SEGUNDOS_INICIALES;
+
+    function actualizarTextoContador() {
+      boton.textContent = `Preparando tu audio en ${segundosRestantes} segundos...`;
+    }
+
+    function activarBoton() {
+      boton.disabled = false;
+      boton.classList.add('activo');
+      boton.textContent = '⬇ Descargar Audio';
+      mensajeEstado.textContent = '¡Listo! Tu audio ya puede descargarse.';
+    }
+
+    actualizarTextoContador();
+
+    const intervalo = setInterval(function () {
+      segundosRestantes -= 1;
+
+      if (segundosRestantes > 0) {
+        actualizarTextoContador();
+      } else {
+        clearInterval(intervalo);
+        activarBoton();
+      }
+    }, 1000);
+
+    boton.addEventListener('click', function () {
+      if (boton.disabled) {
+        return;
+      }
+
+      mensajeEstado.textContent = 'Redirigiendo a tu descarga...';
+
+      // Por ahora simulamos la descarga redirigiendo a un enlace de prueba.
+      window.location.href = URL_DESCARGA_PRUEBA;
+    });
+  })();
+</script>
+
+</body>
+</html>
