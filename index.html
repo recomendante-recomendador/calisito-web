@@ -313,6 +313,13 @@
   (function () {
     const USUARIO_BOT_TELEGRAM = 'CalisitoBot';
 
+    // 🪟 Le avisa a Telegram que el Mini App ya cargó (sin esto, algunos
+    // clientes muestran la ventana con retraso o con la barra de carga fija).
+    if (window.Telegram && window.Telegram.WebApp) {
+      window.Telegram.WebApp.ready();
+      window.Telegram.WebApp.expand();
+    }
+
     const boton = document.getElementById('boton-descarga');
     const cuadroAvisoPlaylist = document.getElementById('cuadro-aviso-playlist');
     const mensajeEstado = document.getElementById('mensaje-estado');
@@ -393,11 +400,24 @@
     boton.addEventListener('click', function () {
       if (!listoParaDescargar) return;
 
+      const tg = window.Telegram && window.Telegram.WebApp;
+
+      // 🪟 Camino nuevo: estamos abiertos como Mini App dentro de Telegram.
+      // sendData() entrega el dato al bot como un mensaje "web_app_data" Y
+      // cierra la ventana flotante automáticamente — no hace falta llamar
+      // a close() aparte.
+      if (tg && tg.initData) {
+        mensajeEstado.textContent = 'Enviando confirmación a tu Telegram...';
+        tg.sendData(JSON.stringify({ tipo: esPlaylist ? 'playlist' : 'single' }));
+        return;
+      }
+
+      // 🧯 Fallback: alguien abrió esta página fuera de Telegram (navegador
+      // normal). Se mantiene el flujo viejo por si acaso.
       if (!idUsuario) {
         window.location.href = `https://t.me/${USUARIO_BOT_TELEGRAM}`;
         return;
       }
-
       mensajeEstado.textContent = 'Enviando archivos a tu Telegram...';
       const comandoStart = esPlaylist ? `verify_playlist_${idUsuario}` : `verify_${idUsuario}`;
       window.location.href = `https://t.me/${USUARIO_BOT_TELEGRAM}?start=${comandoStart}`;
